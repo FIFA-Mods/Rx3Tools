@@ -24,35 +24,34 @@ namespace Rx3Tools
         public MainWindow()
         {
             InitializeComponent();
-            string appDir = AppDomain.CurrentDomain.BaseDirectory;
-            string skeletonDir = Path.Combine(appDir, "data", "skeletons");
-            if (Directory.Exists(skeletonDir))
-            {
-                var files = Directory.GetFiles(skeletonDir, "*.rx3", SearchOption.AllDirectories);
-                var relativePaths = files
-                    .Select(f => GetRelativePath(skeletonDir, f).Replace("\\", "/"))
-                    .ToList();
-                relativePaths.Insert(0, string.Empty);
-                cbSkeleton.ItemsSource = relativePaths;
-            }
             lastInputDir = Properties.Settings.Default.LastInputDir ?? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             lastOutputDir = Properties.Settings.Default.LastOutputDir ?? Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            UpdateSkeletonComboBox();
             initialized = true;
         }
 
-        static string GetRelativePath(string basePath, string fullPath)
+        private void cbGame_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            Uri baseUri = new Uri(AppendDirectorySeparatorChar(basePath));
-            Uri fullUri = new Uri(fullPath);
-            Uri relativeUri = baseUri.MakeRelativeUri(fullUri);
-            return Uri.UnescapeDataString(relativeUri.ToString());
+            if (cbSkeleton == null) return;
+            UpdateSkeletonComboBox();
         }
 
-        static string AppendDirectorySeparatorChar(string path)
+        private void UpdateSkeletonComboBox()
         {
-            if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
-                path += Path.DirectorySeparatorChar;
-            return path;
+            if (cbGame.SelectedItem is ComboBoxItem selectedGame)
+            {
+                string gameName = selectedGame.Tag as string;
+                string appDir = AppDomain.CurrentDomain.BaseDirectory;
+                string skeletonDir = Path.Combine(appDir, "data", "skeletons", gameName);
+                List<string> skeletonFiles = new List<string> { string.Empty };
+                if (Directory.Exists(skeletonDir))
+                {
+                    var files = Directory.GetFiles(skeletonDir, "*.rx3", SearchOption.TopDirectoryOnly);
+                    skeletonFiles.AddRange(files.Select(Path.GetFileName));
+                }
+                cbSkeleton.ItemsSource = skeletonFiles;
+                cbSkeleton.SelectedIndex = 0;
+            }
         }
 
         void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -102,13 +101,12 @@ namespace Rx3Tools
         {
             try
             {
-                string GetSelectedTagOrContent(ComboBox cb)
+                string GetSelectedTag(ComboBox cb)
                 {
                     if (cb?.SelectedItem == null) return null;
                     if (cb.SelectedItem is ComboBoxItem cbi)
                     {
-                        if (cbi.Tag != null) return cbi.Tag.ToString();
-                        return cbi.Content?.ToString();
+                        return cbi.Tag.ToString();
                     }
                     return cb.SelectedItem.ToString();
                 }
@@ -118,18 +116,26 @@ namespace Rx3Tools
                     if (cb.SelectedItem is ComboBoxItem cbi) return cbi.Content?.ToString();
                     return cb.SelectedItem.ToString();
                 }
-                string operationTag = GetSelectedTagOrContent(cbOperation)?.Trim();
+                string operationTag = GetSelectedTag(cbOperation)?.Trim();
                 string inputValue = tbInput.Text?.Trim();
-                string gameTag = GetSelectedTagOrContent(cbGame)?.Trim();
+                string gameTag = GetSelectedTag(cbGame)?.Trim();
                 string skeletonName = GetSelectedDisplayText(cbSkeleton)?.Trim();
-                if (string.IsNullOrWhiteSpace(skeletonName)) skeletonName = null;
-                string modelTag = GetSelectedTagOrContent(cbModel)?.Trim();
-                string textureTag = GetSelectedTagOrContent(cbTexture)?.Trim();
+                string modelTag = GetSelectedTag(cbModel)?.Trim();
+                string textureTag = GetSelectedTag(cbTexture)?.Trim();
+                string folderOptionTag = GetSelectedTag(cbFolderOption)?.Trim();
+                string texMetadataTag = GetSelectedTag(cbTextureMetadata)?.Trim();
                 var sb = new StringBuilder();
-                if (string.Equals(operationTag, "ExtractFile", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(operationTag, "ExtractFolder", StringComparison.OrdinalIgnoreCase))
+                bool extract = string.Equals(operationTag, "ExtractFile", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(operationTag, "ExtractFolder", StringComparison.OrdinalIgnoreCase);
+                bool import = string.Equals(operationTag, "ImportFiles", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(operationTag, "ImportFolder", StringComparison.OrdinalIgnoreCase);
+                if (extract)
                 {
                     sb.Append("-export ");
+                }
+                else if (import)
+                {
+                    sb.Append("-import ");
                 }
                 else
                 {
@@ -138,8 +144,16 @@ namespace Rx3Tools
                 }
                 if (!string.IsNullOrWhiteSpace(inputValue))
                 {
-                    sb.Append("-i ");
-                    sb.Append("\"").Append(inputValue).Append("\" ");
+                    string[] filePaths = inputValue.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (string path in filePaths)
+                    {
+                        string trimmedPath = path.Trim();
+                        if (!string.IsNullOrWhiteSpace(trimmedPath))
+                        {
+                            sb.Append("-i ");
+                            sb.Append("\"").Append(trimmedPath).Append("\" ");
+                        }
+                    }
                 }
                 else
                 {
@@ -173,6 +187,10 @@ namespace Rx3Tools
 
                 sb.Append("-o ");
                 sb.Append("\"").Append(outputFolder).Append("\" ");
+                if (chkRecursive.IsChecked == true)
+                {
+                    sb.Append("-recursive ");
+                }
                 if (!string.IsNullOrWhiteSpace(gameTag))
                 {
                     sb.Append("-game ");
@@ -180,20 +198,59 @@ namespace Rx3Tools
                 }
                 if (!string.IsNullOrWhiteSpace(skeletonName))
                 {
+                    string gameFolder = string.Empty;
+                    if (cbGame.SelectedItem is ComboBoxItem selectedGame)
+                    {
+                        gameFolder = selectedGame.Tag as string ?? string.Empty;
+                    }
                     sb.Append("-skeleton ");
-                    string skeletonPath = Path.Combine(appDir, "data", "skeletons", skeletonName);
+                    string skeletonPath = Path.Combine(appDir, "data", "skeletons", gameFolder, skeletonName);
                     sb.Append("\"").Append(skeletonPath).Append("\" ");
-                }
-                if (!string.IsNullOrWhiteSpace(modelTag))
-                {
-                    sb.Append("-model ");
-                    sb.Append("\"").Append(modelTag).Append("\" ");
                 }
                 if (!string.IsNullOrWhiteSpace(textureTag))
                 {
                     sb.Append("-texture ");
                     sb.Append("\"").Append(textureTag).Append("\" ");
                 }
+                if (import)
+                {
+                    if (!string.IsNullOrWhiteSpace(gameTag) &&
+                        (texMetadataTag == "global" || texMetadataTag == "local+global"))
+                    {
+                        string globalTexMetadataPath = Path.Combine(appDir, "data", "texture_formats", gameTag);
+                        if (File.Exists(globalTexMetadataPath))
+                        {
+                            sb.Append("-texFormatFile ");
+                            sb.Append("\"").Append(globalTexMetadataPath).Append("\" ");
+                        }
+                    }
+                }
+                if (extract)
+                {
+                    if (!string.IsNullOrWhiteSpace(modelTag))
+                    {
+                        sb.Append("-model ");
+                        sb.Append("\"").Append(modelTag).Append("\" ");
+                    }
+                    if (cbMeshQuads.SelectedIndex == 0)
+                    {
+                        sb.Append("-exportQuads ");
+                    }
+                    if (cbHDRTextures.SelectedIndex == 0)
+                    {
+                        sb.Append("-writeHDR ");
+                    }
+                    if (!string.IsNullOrWhiteSpace(folderOptionTag))
+                    {
+                        sb.Append("-folderOption ");
+                        sb.Append("\"").Append(folderOptionTag).Append("\" ");
+                    }
+                    if (texMetadataTag == "local" || texMetadataTag == "local+global")
+                    {
+                        sb.Append("-writeTexMetadata ");
+                    }
+                }
+
                 string arguments = sb.ToString().TrimEnd();
                 string displayCommand = $"\"{exePath}\" {arguments}";
                 //MessageBox.Show(this, displayCommand, "Command to run (debug)", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -221,26 +278,37 @@ namespace Rx3Tools
             Close();
         }
 
+        private void MinimizeClicked(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
         void btnBrowse_Click(object sender, RoutedEventArgs e)
         {
             var selectedItem = cbOperation.SelectedItem as ComboBoxItem;
             if (selectedItem == null) return;
 
             string tag = selectedItem.Tag as string;
-            if (tag == "ExtractFile")
+            if (tag == "ExtractFiles")
             {
                 var openFileDialog = new OpenFileDialog
                 {
                     Filter = "RX3 files (*.rx3)|*.rx3|All files (*.*)|*.*",
-                    Title = "Select RX3 File",
-                    InitialDirectory = Directory.Exists(lastInputDir) ? lastInputDir : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                    Title = "Select RX3 Files",
+                    InitialDirectory = Directory.Exists(lastInputDir) ? lastInputDir : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                    Multiselect = true
                 };
+
                 if (openFileDialog.ShowDialog() == true)
                 {
-                    tbInput.Text = openFileDialog.FileName;
-                    lastInputDir = Path.GetDirectoryName(openFileDialog.FileName) ?? lastInputDir;
-                    Properties.Settings.Default.LastInputDir = lastInputDir;
-                    Properties.Settings.Default.Save();
+                    string[] selectedFiles = openFileDialog.FileNames;
+                    tbInput.Text = string.Join("; ", selectedFiles);
+                    if (selectedFiles.Length > 0)
+                    {
+                        lastInputDir = Path.GetDirectoryName(selectedFiles[0]) ?? lastInputDir;
+                        Properties.Settings.Default.LastInputDir = lastInputDir;
+                        Properties.Settings.Default.Save();
+                    }
                 }
             }
             else if (tag == "ExtractFolder")
@@ -283,10 +351,26 @@ namespace Rx3Tools
             if (cbOperation.SelectedItem is ComboBoxItem selectedItem)
             {
                 string tag = selectedItem.Tag as string;
-                if (tag == "ExtractFile")
-                    lblSelect.Content = "Select File";
+                if (tag == "ExtractFiles")
+                {
+                    lblSelect.Content = "Select Files";
+                    btnOperation.Content = "Extract";
+                }
                 else if (tag == "ExtractFolder")
+                {
                     lblSelect.Content = "Select Folder";
+                    btnOperation.Content = "Extract";
+                }
+                else if (tag == "ImportFiles")
+                {
+                    lblSelect.Content = "Select Files";
+                    btnOperation.Content = "Import";
+                }
+                else if (tag == "ImportFolder")
+                {
+                    lblSelect.Content = "Select Folder";
+                    btnOperation.Content = "Import";
+                }
             }
         }
     }

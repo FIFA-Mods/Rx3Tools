@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Rx3Tools"
         xmlns:res="clr-namespace:Rx3Tools"
         mc:Ignorable="d"
-        Title="Rx3Tools" ResizeMode="NoResize" Height="360" Width="600"
+        Title="Rx3Tools" ResizeMode="NoResize" Height="500" Width="700"
         WindowStyle="None"
         AllowsTransparency="True"
         WindowStartupLocation="CenterScreen"
@@ -89,6 +89,41 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="MinimizeButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#FFE1E1E1"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                    x:Name="Border"
+                    Background="{TemplateBinding Background}"
+                    CornerRadius="0">
+                            <ContentPresenter
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#FF3F3F3F"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#FF2D2D2D"/>
+                                <Setter Property="Foreground" Value="#FFB0B0B0"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#FF606060"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style TargetType="{x:Type CheckBox}">
             <Setter Property="FocusVisualStyle">
                 <Setter.Value>
@@ -115,10 +150,10 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Border x:Name="checkBoxBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="1" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                            <Border x:Name="checkBoxBorder" Width="20" Height="20" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="1" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
                                 <Grid x:Name="markGrid">
-                                    <Path x:Name="optionMark" Data="F1M9.97498,1.22334L4.6983,9.09834 4.52164,9.09834 0,5.19331 1.27664,3.52165 4.255,6.08833 8.33331,1.52588E-05 9.97498,1.22334z" Fill="#FFF1F1F1" Margin="1" Opacity="0" Stretch="None"/>
-                                    <Rectangle x:Name="indeterminateMark" Fill="#FFF1F1F1" Margin="2" Opacity="0"/>
+                                    <Path x:Name="optionMark" Data="F1M9.97498,1.22334L4.6983,9.09834 4.52164,9.09834 0,5.19331 1.27664,3.52165 4.255,6.08833 8.33331,1.52588E-05 9.97498,1.22334z" Fill="#FFF1F1F1" Margin="3" Opacity="0" Stretch="Uniform"/>
+                                    <Rectangle x:Name="indeterminateMark" Fill="#FFF1F1F1" Margin="4" Opacity="0"/>
                                 </Grid>
                             </Border>
                             <ContentPresenter x:Name="contentPresenter" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" Grid.Column="1" ContentStringFormat="{TemplateBinding ContentStringFormat}" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
@@ -277,6 +312,91 @@
                                     MinWidth="{Binding PlacementTarget.ActualWidth, RelativeSource={RelativeSource AncestorType=Popup}}"
                                     MaxHeight="{TemplateBinding MaxDropDownHeight}">
                                         <ScrollViewer IsTabStop="False" SnapsToDevicePixels="True">
+                                            <ScrollViewer.Resources>
+                                                <Style x:Key="ScrollBarPageButton" TargetType="RepeatButton">
+                                                    <Setter Property="IsTabStop" Value="False"/>
+                                                    <Setter Property="Focusable" Value="False"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="RepeatButton">
+                                                                <Border Background="Transparent"/>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                                <Style x:Key="CustomScrollBarThumb" TargetType="Thumb">
+                                                    <Setter Property="IsTabStop" Value="False"/>
+                                                    <Setter Property="Focusable" Value="False"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Thumb">
+                                                                <Border x:Name="ThumbBorder" 
+                                Background="#FF505050" 
+                                Margin="2" 
+                                CornerRadius="3"/>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="ThumbBorder" Property="Background" Value="#FF707070"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsDragging" Value="True">
+                                                                        <Setter TargetName="ThumbBorder" Property="Background" Value="#FF909090"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                                <Style TargetType="ScrollBar">
+                                                    <Setter Property="Background" Value="{StaticResource CB_DropDownBackground}"/>
+                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="ScrollBar">
+                                                                <Grid Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                                                    <Track x:Name="PART_Track" IsDirectionReversed="True" IsEnabled="{TemplateBinding IsMouseOver}">
+                                                                        <Track.DecreaseRepeatButton>
+                                                                            <RepeatButton Style="{StaticResource ScrollBarPageButton}" Command="{x:Static ScrollBar.PageUpCommand}"/>
+                                                                        </Track.DecreaseRepeatButton>
+                                                                        <Track.IncreaseRepeatButton>
+                                                                            <RepeatButton Style="{StaticResource ScrollBarPageButton}" Command="{x:Static ScrollBar.PageDownCommand}"/>
+                                                                        </Track.IncreaseRepeatButton>
+                                                                        <Track.Thumb>
+                                                                            <Thumb Style="{StaticResource CustomScrollBarThumb}"/>
+                                                                        </Track.Thumb>
+                                                                    </Track>
+                                                                </Grid>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="Orientation" Value="Vertical">
+                                                            <Setter Property="Width" Value="12"/>
+                                                        </Trigger>
+                                                        <Trigger Property="Orientation" Value="Horizontal">
+                                                            <Setter Property="Height" Value="12"/>
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="ScrollBar">
+                                                                        <Grid Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                                                            <Track x:Name="PART_Track" IsEnabled="{TemplateBinding IsMouseOver}">
+                                                                                <Track.DecreaseRepeatButton>
+                                                                                    <RepeatButton Style="{StaticResource ScrollBarPageButton}" Command="{x:Static ScrollBar.PageLeftCommand}"/>
+                                                                                </Track.DecreaseRepeatButton>
+                                                                                <Track.IncreaseRepeatButton>
+                                                                                    <RepeatButton Style="{StaticResource ScrollBarPageButton}" Command="{x:Static ScrollBar.PageRightCommand}"/>
+                                                                                </Track.IncreaseRepeatButton>
+                                                                                <Track.Thumb>
+                                                                                    <Thumb Style="{StaticResource CustomScrollBarThumb}"/>
+                                                                                </Track.Thumb>
+                                                                            </Track>
+                                                                        </Grid>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ScrollViewer.Resources>
                                             <StackPanel IsItemsHost="True"/>
                                         </ScrollViewer>
                                     </Border>
@@ -347,23 +467,27 @@
             </Style>
         </Border.Style>
         <Grid>
-            <Label x:Name="lblTitle" FontSize="14" FontFamily="Segoe UI Light" Foreground="#FFa0a0a0" Content="Rx3 Tools 0.100 Experimental" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4,4,0,0" FontWeight="Bold"/>
+            <Label x:Name="lblTitle" FontSize="14" FontFamily="Segoe UI Light" Foreground="#FFa0a0a0" Content="Rx3 Tools 0.200 Experimental, by Dmitri" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4,4,0,0" FontWeight="Bold"/>
             <Label x:Name="lblSelectOperation" Content="Select Operation" HorizontalAlignment="Left" Margin="16,59,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
-            <ComboBox x:Name="cbOperation" HorizontalAlignment="Left" Margin="177,59,0,0" VerticalAlignment="Top" Width="393" SelectionChanged="cbOperation_SelectionChanged">
-                <ComboBoxItem Content="Extract resources from RX3 file" Tag="ExtractFile" />
-                <ComboBoxItem Content="Extract resources from all RX3 files in folder" Tag="ExtractFolder" />
+            <ComboBox x:Name="cbOperation" HorizontalAlignment="Left" Margin="177,59,0,0" VerticalAlignment="Top" Width="494" SelectionChanged="cbOperation_SelectionChanged">
+                <ComboBoxItem Content="Extract resources from RX3" Tag="ExtractFiles" />
+                <ComboBoxItem Content="Extract resources from all RX3 in folder" Tag="ExtractFolder" />
+                <ComboBoxItem Content="Import selected files to RX3" Tag="ImportFiles" />
+                <ComboBoxItem Content="Import folder content to RX3" Tag="ImportFolder" />
             </ComboBox>
             <Label x:Name="lblGame" Content="Game" HorizontalAlignment="Left" Margin="16,102,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
-            <ComboBox x:Name="cbGame" HorizontalAlignment="Left" Margin="177,102,0,0" VerticalAlignment="Top" Width="393" SelectedIndex="2">
-                <ComboBoxItem Content="FIFA 14 PC" Tag="fifa14pc" />
-                <ComboBoxItem Content="FIFA 15 PC" Tag="fifa15pc" />
+            <ComboBox x:Name="cbGame" HorizontalAlignment="Left" Margin="177,102,0,0" VerticalAlignment="Top" Width="494" SelectedIndex="0" SelectionChanged="cbGame_SelectionChanged">
                 <ComboBoxItem Content="FIFA 16 PC" Tag="fifa16pc" />
+                <ComboBoxItem Content="FIFA 15 PC" Tag="fifa15pc" />
+                <ComboBoxItem Content="FIFA 14 PC" Tag="fifa14pc" />
+                <ComboBoxItem Content="FIFA 13 PC" Tag="fifa13pc" />
+                <ComboBoxItem Content="FIFA 12 PC" Tag="fifa12pc" />
             </ComboBox>
             <Label x:Name="lblSelect" Content="Select File" HorizontalAlignment="Left" Margin="16,145,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
-            <TextBox x:Name="tbInput" Margin="176,144,0,0" FontSize="14" VerticalContentAlignment="Center" Background="#FF1F1F1F" BorderBrush="Black" Foreground="#FFE1E1E1" Padding="5,0" TextChanged="TbDirectory_TextChanged" HorizontalAlignment="Left" VerticalAlignment="Top" Height="34" Width="357" />
-            <Button x:Name="btnBrowse" Content="..." FontFamily="Segoe UI Light" FontSize="18" HorizontalAlignment="Left" Margin="538,145,0,0" VerticalAlignment="Top" Width="32" Height="33"  Click="btnBrowse_Click"/>
+            <TextBox x:Name="tbInput" Margin="177,144,0,0" FontSize="14" VerticalContentAlignment="Center" Background="#FF1F1F1F" BorderBrush="Black" Foreground="#FFE1E1E1" Padding="5,0" TextChanged="TbDirectory_TextChanged" HorizontalAlignment="Left" VerticalAlignment="Top" Height="34" Width="457" />
+            <Button x:Name="btnBrowse" Content="..." FontFamily="Segoe UI Light" FontSize="18" HorizontalAlignment="Left" Margin="639,145,0,0" VerticalAlignment="Top" Width="32" Height="33"  Click="btnBrowse_Click"/>
             <Label x:Name="lblSkeleton" Content="Skeleton File" HorizontalAlignment="Left" Margin="16,188,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
-            <ComboBox x:Name="cbSkeleton" HorizontalAlignment="Left" Margin="177,188,0,0" VerticalAlignment="Top" Width="393" SelectedIndex="-1">
+            <ComboBox x:Name="cbSkeleton" HorizontalAlignment="Left" Margin="177,188,0,0" VerticalAlignment="Top" Width="494" SelectedIndex="-1">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding}" xml:space="preserve" />
@@ -371,24 +495,51 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
             <Label x:Name="lblModel" Content="Model Format" HorizontalAlignment="Left" Margin="16,231,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
-            <Label x:Name="lblTexture" Content="Texture Format" HorizontalAlignment="Left" Margin="315,231,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
-            <ComboBox x:Name="cbModel" HorizontalAlignment="Left" Margin="177,231,0,0" VerticalAlignment="Top" Width="118" SelectedIndex="0">
-                <ComboBoxItem Content="FBX" />
-                <ComboBoxItem Content="FBX ASCII" />
+            <Label x:Name="lblTexture" Content="Texture Format" HorizontalAlignment="Left" Margin="355,231,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <ComboBox x:Name="cbModel" HorizontalAlignment="Left" Margin="177,231,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
+                <ComboBoxItem Content="FBX" Tag="fbx" />
+                <ComboBoxItem Content="FBX ASCII" Tag="fbxascii" />
             </ComboBox>
-            <ComboBox x:Name="cbTexture" HorizontalAlignment="Left" Margin="452,231,0,0" VerticalAlignment="Top" Width="118" SelectedIndex="0">
-                <ComboBoxItem Content="PNG" />
-                <ComboBoxItem Content="DDS" />
-                <ComboBoxItem Content="TGA" />
+            <ComboBox x:Name="cbTexture" HorizontalAlignment="Left" Margin="505,231,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
+                <ComboBoxItem Content="Prefer PNG" Tag="png" />
+                <ComboBoxItem Content="Prefer DDS" Tag="dds" />
+                <ComboBoxItem Content="Prefer TGA" Tag="tga" />
             </ComboBox>
-            <Button x:Name="btnUninstall" Content="Extract" FontFamily="Segoe UI Light" HorizontalAlignment="Left" Margin="452,295,0,0" VerticalAlignment="Top" Width="118" Height="36" FontSize="18" Click="OperationClicked"/>
-            <Button x:Name="btnExit" Style="{StaticResource CloseButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE8BB;" HorizontalAlignment="Left" Margin="561,0,0,0" VerticalAlignment="Top" Width="37" Height="32" FontSize="12" Click="ExitClicked"/>
-            <Image Source="logo_discord.png" Width="20" Height="20" Margin="27,285,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
-            <TextBlock x:Name="tbLinkDiscord" Width="174" Height="23" Margin="55,284,0,0" HorizontalAlignment="Left" FontSize="14" Background="{x:Null}" TextAlignment="Left" VerticalAlignment="Top" >
+            <Label x:Name="lblMeshQuads" Content="Save Quad Meshes" HorizontalAlignment="Left" Margin="16,274,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <ComboBox x:Name="cbMeshQuads" HorizontalAlignment="Left" Margin="177,277,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
+                <ComboBoxItem Content="as Quads" />
+                <ComboBoxItem Content="as Tris" />
+            </ComboBox>
+            <Label x:Name="lblHDRTextures" Content="Save HDR Textures" HorizontalAlignment="Left" Margin="355,274,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <ComboBox x:Name="cbHDRTextures" HorizontalAlignment="Left" Margin="505,277,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
+                <ComboBoxItem Content="as HDR Files" />
+                <ComboBoxItem Content="as Usual Textures" />
+            </ComboBox>
+            <Label x:Name="lblFolderOption" Content="Folder option" HorizontalAlignment="Left" Margin="16,317,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <ComboBox x:Name="cbFolderOption" HorizontalAlignment="Left" Margin="177,318,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
+                <ComboBoxItem Content="Auto" Tag="auto" />
+                <ComboBoxItem Content="Always Create" Tag="alwaysCreate" />
+                <ComboBoxItem Content="Never Create" Tag="neverCreate" />
+            </ComboBox>
+            <Label x:Name="lblTextureMetadata" Content="Texture Metadata" HorizontalAlignment="Left" Margin="355,317,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <ComboBox x:Name="cbTextureMetadata" HorizontalAlignment="Left" Margin="505,318,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
+                <ComboBoxItem Content="Only Global" Tag="global" />
+                <ComboBoxItem Content="Only Local" Tag="local" />
+                <ComboBoxItem Content="Local + Global" Tag="local+global" />
+                <ComboBoxItem Content="Do Not Use" Tag="" />
+            </ComboBox>
+            <CheckBox x:Name="chkRecursive" Content="Recursive" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="176,362,0,0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <Button x:Name="btnOperation" Content="Extract" FontFamily="Segoe UI Light" HorizontalAlignment="Left" Margin="553,434,0,0" VerticalAlignment="Top" Width="118" Height="36" FontSize="18" Click="OperationClicked"/>
+            <Button x:Name="btnExit" Style="{StaticResource CloseButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE8BB;" HorizontalAlignment="Left" Margin="661,0,0,0" VerticalAlignment="Top" Width="37" Height="32" FontSize="12" Click="ExitClicked"/>
+            <Button x:Name="btnMinimize" Style="{StaticResource MinimizeButtonStyle}" HorizontalAlignment="Left" Margin="624,0,0,0" VerticalAlignment="Top" Width="37" Height="32" Click="MinimizeClicked">
+                <TextBlock Text="&#xE921;" FontFamily="Segoe MDL2 Assets" FontSize="12" Margin="0,5,0,0" />
+            </Button>
+            <Image Source="logo_discord.png" Width="20" Height="20" Margin="23,418,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+            <TextBlock x:Name="tbLinkDiscord" Width="174" Height="23" Margin="51,417,0,0" HorizontalAlignment="Left" FontSize="14" Background="{x:Null}" TextAlignment="Left" VerticalAlignment="Top" >
             <Hyperlink x:Name="linkDiscord" Foreground="#FF7A7AFF" NavigateUri="https://discord.gg/7ZWkHAaFdW" RequestNavigate="Hyperlink_Navigate">Discord</Hyperlink>
             </TextBlock>
-            <Image Source="logo_soccergaming.png" Width="20" Height="20" Margin="27,311,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
-            <TextBlock x:Name="tbLinkSoccerGaming" Width="174" Height="23" Margin="55,310,0,0" HorizontalAlignment="Left" FontSize="14" Background="{x:Null}" TextAlignment="Left" VerticalAlignment="Top" >
+            <Image Source="logo_soccergaming.png" Width="20" Height="20" Margin="23,444,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+            <TextBlock x:Name="tbLinkSoccerGaming" Width="174" Height="23" Margin="51,443,0,0" HorizontalAlignment="Left" FontSize="14" Background="{x:Null}" TextAlignment="Left" VerticalAlignment="Top" >
             <Hyperlink x:Name="linkSoccerGaming" Foreground="#FFFFA437" NavigateUri="https://soccergaming.com/forums/" RequestNavigate="Hyperlink_Navigate">SoccerGaming Forums</Hyperlink>
             </TextBlock>
         </Grid>
