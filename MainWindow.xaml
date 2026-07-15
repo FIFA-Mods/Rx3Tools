@@ -483,7 +483,7 @@
                 <ComboBoxItem Content="FIFA 13 PC" Tag="fifa13pc" />
                 <ComboBoxItem Content="FIFA 12 PC" Tag="fifa12pc" />
             </ComboBox>
-            <Label x:Name="lblSelect" Content="Select File" HorizontalAlignment="Left" Margin="16,145,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <Label x:Name="lblSelect" Content="Select Files" HorizontalAlignment="Left" Margin="16,145,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
             <TextBox x:Name="tbInput" Margin="177,144,0,0" FontSize="14" VerticalContentAlignment="Center" Background="#FF1F1F1F" BorderBrush="Black" Foreground="#FFE1E1E1" Padding="5,0" TextChanged="TbDirectory_TextChanged" HorizontalAlignment="Left" VerticalAlignment="Top" Height="34" Width="457" />
             <Button x:Name="btnBrowse" Content="..." FontFamily="Segoe UI Light" FontSize="18" HorizontalAlignment="Left" Margin="639,145,0,0" VerticalAlignment="Top" Width="32" Height="33"  Click="btnBrowse_Click"/>
             <Label x:Name="lblSkeleton" Content="Skeleton File" HorizontalAlignment="Left" Margin="16,188,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
