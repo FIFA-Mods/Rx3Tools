@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Rx3Tools"
         xmlns:res="clr-namespace:Rx3Tools"
         mc:Ignorable="d"
-        Title="Rx3Tools" ResizeMode="NoResize" Height="500" Width="700"
+        Title="Rx3Tools" ResizeMode="NoResize" Height="520" Width="700"
         WindowStyle="None"
         AllowsTransparency="True"
         WindowStartupLocation="CenterScreen"
@@ -304,13 +304,13 @@
                            PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}">
                                 <Grid>
                                     <Border x:Name="PopupBorder"
-                                    Background="{StaticResource CB_DropDownBackground}"
-                                    BorderBrush="{StaticResource CB_Border}"
-                                    BorderThickness="1"
-                                    CornerRadius="0"
-                                    SnapsToDevicePixels="True"
-                                    MinWidth="{Binding PlacementTarget.ActualWidth, RelativeSource={RelativeSource AncestorType=Popup}}"
-                                    MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                        Background="{StaticResource CB_DropDownBackground}"
+                                        BorderBrush="{StaticResource CB_HoverAccent}"
+                                        BorderThickness="1"
+                                        CornerRadius="0"
+                                        SnapsToDevicePixels="True"
+                                        MinWidth="{Binding PlacementTarget.ActualWidth, RelativeSource={RelativeSource AncestorType=Popup}}"
+                                        MaxHeight="{TemplateBinding MaxDropDownHeight}">
                                         <ScrollViewer IsTabStop="False" SnapsToDevicePixels="True">
                                             <ScrollViewer.Resources>
                                                 <Style x:Key="ScrollBarPageButton" TargetType="RepeatButton">
@@ -403,10 +403,12 @@
                                 </Grid>
                             </Popup>
                         </Grid>
-
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter Property="Foreground" Value="{StaticResource CB_HoverAccent}"/>
+                            </Trigger>
+                            <Trigger Property="IsDropDownOpen" Value="True">
+                                <Setter TargetName="MainBorder" Property="BorderBrush" Value="{StaticResource CB_HoverAccent}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Foreground" Value="#FF777777"/>
@@ -494,52 +496,61 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <Label x:Name="lblModel" Content="Model Format" HorizontalAlignment="Left" Margin="16,231,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
-            <Label x:Name="lblTexture" Content="Texture Format" HorizontalAlignment="Left" Margin="355,231,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
-            <ComboBox x:Name="cbModel" HorizontalAlignment="Left" Margin="177,231,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
-                <ComboBoxItem Content="FBX" Tag="fbx" />
-                <ComboBoxItem Content="FBX ASCII" Tag="fbxascii" />
+            <Label x:Name="lblBaseModel" Content="Base Model" HorizontalAlignment="Left" Margin="16,231,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <ComboBox x:Name="cbBaseModel" HorizontalAlignment="Left" Margin="177,231,0,0" VerticalAlignment="Top" Width="494" SelectedIndex="-1">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" xml:space="preserve" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
             </ComboBox>
-            <ComboBox x:Name="cbTexture" HorizontalAlignment="Left" Margin="505,231,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
+            <Label x:Name="lblModel" Content="Model Format" HorizontalAlignment="Left" Margin="16,274,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <Label x:Name="lblTexture" Content="Texture Format" HorizontalAlignment="Left" Margin="355,274,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <ComboBox x:Name="cbModel" HorizontalAlignment="Left" Margin="177,274,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
+                <ComboBoxItem Content="Prefer FBX" Tag="fbx" />
+                <ComboBoxItem Content="Prefer FBX ASCII" Tag="fbxascii" />
+                <ComboBoxItem Content="Prefer OBJ" Tag="obj" />
+            </ComboBox>
+            <ComboBox x:Name="cbTexture" HorizontalAlignment="Left" Margin="505,274,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
                 <ComboBoxItem Content="Prefer PNG" Tag="png" />
                 <ComboBoxItem Content="Prefer DDS" Tag="dds" />
                 <ComboBoxItem Content="Prefer TGA" Tag="tga" />
             </ComboBox>
-            <Label x:Name="lblMeshQuads" Content="Save Quad Meshes" HorizontalAlignment="Left" Margin="16,274,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
-            <ComboBox x:Name="cbMeshQuads" HorizontalAlignment="Left" Margin="177,277,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
+            <Label x:Name="lblMeshQuads" Content="Save Quad Meshes" HorizontalAlignment="Left" Margin="16,317,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <ComboBox x:Name="cbMeshQuads" HorizontalAlignment="Left" Margin="177,320,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
                 <ComboBoxItem Content="as Quads" />
                 <ComboBoxItem Content="as Tris" />
             </ComboBox>
-            <Label x:Name="lblHDRTextures" Content="Save HDR Textures" HorizontalAlignment="Left" Margin="355,274,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
-            <ComboBox x:Name="cbHDRTextures" HorizontalAlignment="Left" Margin="505,277,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
+            <Label x:Name="lblHDRTextures" Content="Save HDR Textures" HorizontalAlignment="Left" Margin="355,317,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <ComboBox x:Name="cbHDRTextures" HorizontalAlignment="Left" Margin="505,320,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
                 <ComboBoxItem Content="as HDR Files" />
                 <ComboBoxItem Content="as Usual Textures" />
             </ComboBox>
-            <Label x:Name="lblFolderOption" Content="Folder option" HorizontalAlignment="Left" Margin="16,317,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
-            <ComboBox x:Name="cbFolderOption" HorizontalAlignment="Left" Margin="177,318,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
+            <Label x:Name="lblFolderOption" Content="Folder option" HorizontalAlignment="Left" Margin="16,360,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <ComboBox x:Name="cbFolderOption" HorizontalAlignment="Left" Margin="177,361,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
                 <ComboBoxItem Content="Auto" Tag="auto" />
                 <ComboBoxItem Content="Always Create" Tag="alwaysCreate" />
                 <ComboBoxItem Content="Never Create" Tag="neverCreate" />
             </ComboBox>
-            <Label x:Name="lblTextureMetadata" Content="Texture Metadata" HorizontalAlignment="Left" Margin="355,317,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
-            <ComboBox x:Name="cbTextureMetadata" HorizontalAlignment="Left" Margin="505,318,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
+            <Label x:Name="lblTextureMetadata" Content="Texture Metadata" HorizontalAlignment="Left" Margin="355,360,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <ComboBox x:Name="cbTextureMetadata" HorizontalAlignment="Left" Margin="505,361,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
                 <ComboBoxItem Content="Only Global" Tag="global" />
                 <ComboBoxItem Content="Only Local" Tag="local" />
                 <ComboBoxItem Content="Local + Global" Tag="local+global" />
                 <ComboBoxItem Content="Do Not Use" Tag="" />
             </ComboBox>
-            <CheckBox x:Name="chkRecursive" Content="Recursive" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="176,362,0,0" FontSize="18" FontFamily="Segoe UI Light"/>
-            <Button x:Name="btnOperation" Content="Extract" FontFamily="Segoe UI Light" HorizontalAlignment="Left" Margin="553,434,0,0" VerticalAlignment="Top" Width="118" Height="36" FontSize="18" Click="OperationClicked"/>
+            <CheckBox x:Name="chkRecursive" Content="Recursive" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="176,405,0,0" FontSize="18" FontFamily="Segoe UI Light"/>
+            <Button x:Name="btnOperation" Content="Extract" FontFamily="Segoe UI Light" HorizontalAlignment="Left" Margin="553,454,0,0" VerticalAlignment="Top" Width="118" Height="36" FontSize="18" Click="OperationClicked"/>
             <Button x:Name="btnExit" Style="{StaticResource CloseButtonStyle}" FontFamily="Segoe MDL2 Assets" Content="&#xE8BB;" HorizontalAlignment="Left" Margin="661,0,0,0" VerticalAlignment="Top" Width="37" Height="32" FontSize="12" Click="ExitClicked"/>
             <Button x:Name="btnMinimize" Style="{StaticResource MinimizeButtonStyle}" HorizontalAlignment="Left" Margin="624,0,0,0" VerticalAlignment="Top" Width="37" Height="32" Click="MinimizeClicked">
                 <TextBlock Text="&#xE921;" FontFamily="Segoe MDL2 Assets" FontSize="12" Margin="0,5,0,0" />
             </Button>
-            <Image Source="logo_discord.png" Width="20" Height="20" Margin="23,418,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
-            <TextBlock x:Name="tbLinkDiscord" Width="174" Height="23" Margin="51,417,0,0" HorizontalAlignment="Left" FontSize="14" Background="{x:Null}" TextAlignment="Left" VerticalAlignment="Top" >
+            <Image Source="logo_discord.png" Width="20" Height="20" Margin="23,438,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+            <TextBlock x:Name="tbLinkDiscord" Width="174" Height="23" Margin="51,437,0,0" HorizontalAlignment="Left" FontSize="14" Background="{x:Null}" TextAlignment="Left" VerticalAlignment="Top" >
             <Hyperlink x:Name="linkDiscord" Foreground="#FF7A7AFF" NavigateUri="https://discord.gg/7ZWkHAaFdW" RequestNavigate="Hyperlink_Navigate">Discord</Hyperlink>
             </TextBlock>
-            <Image Source="logo_soccergaming.png" Width="20" Height="20" Margin="23,444,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
-            <TextBlock x:Name="tbLinkSoccerGaming" Width="174" Height="23" Margin="51,443,0,0" HorizontalAlignment="Left" FontSize="14" Background="{x:Null}" TextAlignment="Left" VerticalAlignment="Top" >
+            <Image Source="logo_soccergaming.png" Width="20" Height="20" Margin="23,464,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+            <TextBlock x:Name="tbLinkSoccerGaming" Width="174" Height="23" Margin="51,463,0,0" HorizontalAlignment="Left" FontSize="14" Background="{x:Null}" TextAlignment="Left" VerticalAlignment="Top" >
             <Hyperlink x:Name="linkSoccerGaming" Foreground="#FFFFA437" NavigateUri="https://soccergaming.com/forums/" RequestNavigate="Hyperlink_Navigate">SoccerGaming Forums</Hyperlink>
             </TextBlock>
         </Grid>

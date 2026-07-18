@@ -26,24 +26,24 @@ namespace Rx3Tools
             InitializeComponent();
             lastInputDir = Properties.Settings.Default.LastInputDir ?? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             lastOutputDir = Properties.Settings.Default.LastOutputDir ?? Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            UpdateSkeletonComboBox();
+            UpdateComboBoxes();
             initialized = true;
         }
 
         private void cbGame_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (cbSkeleton == null) return;
-            UpdateSkeletonComboBox();
+            UpdateComboBoxes();
         }
 
-        private void UpdateSkeletonComboBox()
+        private void UpdateComboBoxes()
         {
             if (cbGame.SelectedItem is ComboBoxItem selectedGame)
             {
                 string gameName = selectedGame.Tag as string;
                 string appDir = AppDomain.CurrentDomain.BaseDirectory;
                 string skeletonDir = Path.Combine(appDir, "data", "skeletons", gameName);
-                List<string> skeletonFiles = new List<string> { string.Empty };
+                List<string> skeletonFiles = new List<string> { "-" };
                 if (Directory.Exists(skeletonDir))
                 {
                     var files = Directory.GetFiles(skeletonDir, "*.rx3", SearchOption.TopDirectoryOnly);
@@ -51,6 +51,15 @@ namespace Rx3Tools
                 }
                 cbSkeleton.ItemsSource = skeletonFiles;
                 cbSkeleton.SelectedIndex = 0;
+                string baseModelsDir = Path.Combine(appDir, "data", "base_models", gameName);
+                List<string> baseModelFiles = new List<string> { "-" };
+                if (Directory.Exists(baseModelsDir))
+                {
+                    var files = Directory.GetFiles(baseModelsDir, "*.rx3", SearchOption.TopDirectoryOnly);
+                    baseModelFiles.AddRange(files.Select(Path.GetFileName));
+                }
+                cbBaseModel.ItemsSource = baseModelFiles;
+                cbBaseModel.SelectedIndex = 0;
             }
         }
 
@@ -120,12 +129,17 @@ namespace Rx3Tools
                 string inputValue = tbInput.Text?.Trim();
                 string gameTag = GetSelectedTag(cbGame)?.Trim();
                 string skeletonName = GetSelectedDisplayText(cbSkeleton)?.Trim();
+                if (skeletonName == "-")
+                    skeletonName = "";
+                string baseModelName = GetSelectedDisplayText(cbBaseModel)?.Trim();
+                if (baseModelName == "-")
+                    baseModelName = "";
                 string modelTag = GetSelectedTag(cbModel)?.Trim();
                 string textureTag = GetSelectedTag(cbTexture)?.Trim();
                 string folderOptionTag = GetSelectedTag(cbFolderOption)?.Trim();
                 string texMetadataTag = GetSelectedTag(cbTextureMetadata)?.Trim();
                 var sb = new StringBuilder();
-                bool extract = string.Equals(operationTag, "ExtractFile", StringComparison.OrdinalIgnoreCase) ||
+                bool extract = string.Equals(operationTag, "ExtractFiles", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(operationTag, "ExtractFolder", StringComparison.OrdinalIgnoreCase);
                 bool import = string.Equals(operationTag, "ImportFiles", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(operationTag, "ImportFolder", StringComparison.OrdinalIgnoreCase);
@@ -196,15 +210,16 @@ namespace Rx3Tools
                     sb.Append("-game ");
                     sb.Append("\"").Append(gameTag).Append("\" ");
                 }
+                if (!string.IsNullOrWhiteSpace(baseModelName))
+                {
+                    sb.Append("-baseModel ");
+                    string skeletonPath = Path.Combine(appDir, "data", "base_models", gameTag, skeletonName);
+                    sb.Append("\"").Append(skeletonPath).Append("\" ");
+                }
                 if (!string.IsNullOrWhiteSpace(skeletonName))
                 {
-                    string gameFolder = string.Empty;
-                    if (cbGame.SelectedItem is ComboBoxItem selectedGame)
-                    {
-                        gameFolder = selectedGame.Tag as string ?? string.Empty;
-                    }
                     sb.Append("-skeleton ");
-                    string skeletonPath = Path.Combine(appDir, "data", "skeletons", gameFolder, skeletonName);
+                    string skeletonPath = Path.Combine(appDir, "data", "skeletons", gameTag, skeletonName);
                     sb.Append("\"").Append(skeletonPath).Append("\" ");
                 }
                 if (!string.IsNullOrWhiteSpace(textureTag))
