@@ -302,7 +302,7 @@ namespace Rx3Tools
         {
             var selectedItem = cbOperation.SelectedItem as ComboBoxItem;
             if (selectedItem == null) return;
-
+            string appDir = AppDomain.CurrentDomain.BaseDirectory;
             string tag = selectedItem.Tag as string;
             if (tag == "ExtractFiles")
             {
@@ -310,10 +310,9 @@ namespace Rx3Tools
                 {
                     Filter = "RX3 files (*.rx3)|*.rx3|All files (*.*)|*.*",
                     Title = "Select RX3 Files",
-                    InitialDirectory = Directory.Exists(lastInputDir) ? lastInputDir : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                    InitialDirectory = Directory.Exists(lastInputDir) ? lastInputDir : appDir,
                     Multiselect = true
                 };
-
                 if (openFileDialog.ShowDialog() == true)
                 {
                     string[] selectedFiles = openFileDialog.FileNames;
@@ -332,8 +331,51 @@ namespace Rx3Tools
                 {
                     IsFolderPicker = true,
                     Title = "Select Folder Containing RX3 Files",
-                    InitialDirectory = Directory.Exists(lastInputDir) ? lastInputDir : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    DefaultDirectory = Directory.Exists(lastInputDir) ? lastInputDir : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                    InitialDirectory = Directory.Exists(lastInputDir) ? lastInputDir : appDir,
+                    DefaultDirectory = Directory.Exists(lastInputDir) ? lastInputDir : appDir
+                };
+                if (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
+                {
+                    tbInput.Text = folderDialog.FileName;
+                    lastInputDir = folderDialog.FileName;
+                    Properties.Settings.Default.LastInputDir = lastInputDir;
+                    Properties.Settings.Default.Save();
+                }
+            }
+            if (tag == "ImportFiles")
+            {
+                var extensions = new[] { "fbx", "obj", "png", "dds", "tga", "hdr" };
+                string combinedPatterns = string.Join(";", extensions.Select(ext => $"*.{ext}"));
+                string combinedFilter = $"All Supported Files ({combinedPatterns})|{combinedPatterns}";
+                var individualFilters = extensions.Select(ext => $"{ext.ToUpper()} files (*.{ext})|*.{ext}");
+                string dynamicFilter = $"{combinedFilter}|{string.Join("|", individualFilters)}|All files (*.*)|*.*";
+                var openFileDialog = new OpenFileDialog
+                {
+                    Filter = dynamicFilter,
+                    Title = "Select Files",
+                    InitialDirectory = Directory.Exists(lastInputDir) ? lastInputDir : appDir,
+                    Multiselect = true
+                };
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    string[] selectedFiles = openFileDialog.FileNames;
+                    tbInput.Text = string.Join("; ", selectedFiles);
+                    if (selectedFiles.Length > 0)
+                    {
+                        lastInputDir = Path.GetDirectoryName(selectedFiles[0]) ?? lastInputDir;
+                        Properties.Settings.Default.LastInputDir = lastInputDir;
+                        Properties.Settings.Default.Save();
+                    }
+                }
+            }
+            else if (tag == "ImportFolder")
+            {
+                var folderDialog = new CommonOpenFileDialog
+                {
+                    IsFolderPicker = true,
+                    Title = "Select Folder",
+                    InitialDirectory = Directory.Exists(lastInputDir) ? lastInputDir : appDir,
+                    DefaultDirectory = Directory.Exists(lastInputDir) ? lastInputDir : appDir
                 };
                 if (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
                 {
