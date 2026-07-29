@@ -213,8 +213,8 @@ namespace Rx3Tools
                 if (!string.IsNullOrWhiteSpace(baseModelName))
                 {
                     sb.Append("-baseModel ");
-                    string skeletonPath = Path.Combine(appDir, "data", "base_models", gameTag, skeletonName);
-                    sb.Append("\"").Append(skeletonPath).Append("\" ");
+                    string baseModelPath = Path.Combine(appDir, "data", "base_models", gameTag, baseModelName);
+                    sb.Append("\"").Append(baseModelPath).Append("\" ");
                 }
                 if (!string.IsNullOrWhiteSpace(skeletonName))
                 {
