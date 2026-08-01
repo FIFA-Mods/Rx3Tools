@@ -21,12 +21,41 @@ namespace Rx3Tools
         bool initialized = false;
         string lastInputDir;
         string lastOutputDir;
+        private OptionsWindow optionsWindow;
+
         public MainWindow()
         {
             InitializeComponent();
+            optionsWindow = new OptionsWindow();
             lastInputDir = Properties.Settings.Default.LastInputDir ?? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             lastOutputDir = Properties.Settings.Default.LastOutputDir ?? Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             UpdateComboBoxes();
+            string appDir = AppDomain.CurrentDomain.BaseDirectory;
+            string boneRemapDir = Path.Combine(appDir, "data", "bone_remap");
+            List<string> boneRemapFiles = new List<string> { "-" };
+            if (Directory.Exists(boneRemapDir))
+            {
+                var files = Directory.GetFiles(boneRemapDir, "*.txt", SearchOption.TopDirectoryOnly);
+                boneRemapFiles.AddRange(files.Select(Path.GetFileName));
+            }
+            optionsWindow.cbBoneRemap.ItemsSource = boneRemapFiles;
+            optionsWindow.cbBoneRemap.SelectedIndex = 0;
+            string posesDir = Path.Combine(appDir, "data", "poses");
+            List<string> poseChangeFiles = new List<string> { "-" };
+            if (Directory.Exists(posesDir))
+            {
+                string fromSuffix = "_from.fbx";
+                string toSuffix = "_to.fbx";
+                var fbxFiles = new HashSet<string>(Directory.GetFiles(posesDir, "*.fbx", SearchOption.TopDirectoryOnly)
+                    .Select(Path.GetFileName), StringComparer.OrdinalIgnoreCase);
+                var validPairs = fbxFiles
+                    .Where(f => f.EndsWith(fromSuffix, StringComparison.OrdinalIgnoreCase))
+                    .Select(f => f.Substring(0, f.Length - fromSuffix.Length))
+                    .Where(x => fbxFiles.Contains($"{x}{toSuffix}"));
+                poseChangeFiles.AddRange(validPairs);
+            }
+            optionsWindow.cbPoseChange.ItemsSource = poseChangeFiles;
+            optionsWindow.cbPoseChange.SelectedIndex = 0;
             initialized = true;
         }
 
@@ -123,21 +152,30 @@ namespace Rx3Tools
                 {
                     if (cb?.SelectedItem == null) return null;
                     if (cb.SelectedItem is ComboBoxItem cbi) return cbi.Content?.ToString();
+                    if (cb.SelectedItem.ToString() == "-")
+                    {
+                        return "";
+                    }
                     return cb.SelectedItem.ToString();
+                }
+                string appDir = AppDomain.CurrentDomain.BaseDirectory;
+                string exePath = Path.Combine(appDir, "rx3c.exe");
+                if (!File.Exists(exePath))
+                {
+                    MessageBox.Show(this, $"Cannot find rx3c.exe at:\n{exePath}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
                 }
                 string operationTag = GetSelectedTag(cbOperation)?.Trim();
                 string inputValue = tbInput.Text?.Trim();
                 string gameTag = GetSelectedTag(cbGame)?.Trim();
                 string skeletonName = GetSelectedDisplayText(cbSkeleton)?.Trim();
-                if (skeletonName == "-")
-                    skeletonName = "";
                 string baseModelName = GetSelectedDisplayText(cbBaseModel)?.Trim();
-                if (baseModelName == "-")
-                    baseModelName = "";
+                string boneRemapName = GetSelectedDisplayText(optionsWindow.cbBoneRemap)?.Trim();
+                string poseChangeName = GetSelectedDisplayText(optionsWindow.cbPoseChange)?.Trim();
                 string modelTag = GetSelectedTag(cbModel)?.Trim();
                 string textureTag = GetSelectedTag(cbTexture)?.Trim();
                 string folderOptionTag = GetSelectedTag(cbFolderOption)?.Trim();
-                string texMetadataTag = GetSelectedTag(cbTextureMetadata)?.Trim();
+                string texMetadataTag = GetSelectedTag(optionsWindow.cbTextureMetadata)?.Trim();
                 var sb = new StringBuilder();
                 bool extract = string.Equals(operationTag, "ExtractFiles", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(operationTag, "ExtractFolder", StringComparison.OrdinalIgnoreCase);
@@ -145,11 +183,11 @@ namespace Rx3Tools
                     string.Equals(operationTag, "ImportFolder", StringComparison.OrdinalIgnoreCase);
                 if (extract)
                 {
-                    sb.Append("-export ");
+                    sb.Append("-export");
                 }
                 else if (import)
                 {
-                    sb.Append("-import ");
+                    sb.Append("-import");
                 }
                 else
                 {
@@ -164,21 +202,13 @@ namespace Rx3Tools
                         string trimmedPath = path.Trim();
                         if (!string.IsNullOrWhiteSpace(trimmedPath))
                         {
-                            sb.Append("-i ");
-                            sb.Append("\"").Append(trimmedPath).Append("\" ");
+                            sb.Append($" -i \"{trimmedPath}\"");
                         }
                     }
                 }
                 else
                 {
                     MessageBox.Show(this, "Input is not selected", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-                string appDir = AppDomain.CurrentDomain.BaseDirectory;
-                string exePath = Path.Combine(appDir, "rx3c.exe");
-                if (!File.Exists(exePath))
-                {
-                    MessageBox.Show(this, $"Cannot find rx3c.exe at:\n{exePath}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
                 var dlg = new CommonOpenFileDialog
@@ -199,74 +229,97 @@ namespace Rx3Tools
                 Properties.Settings.Default.LastOutputDir = lastOutputDir;
                 Properties.Settings.Default.Save();
 
-                sb.Append("-o ");
-                sb.Append("\"").Append(outputFolder).Append("\" ");
+                sb.Append($" -o \"{outputFolder}\"");
                 if (chkRecursive.IsChecked == true)
                 {
-                    sb.Append("-recursive ");
+                    sb.Append(" -recursive");
                 }
                 if (!string.IsNullOrWhiteSpace(gameTag))
                 {
-                    sb.Append("-game ");
-                    sb.Append("\"").Append(gameTag).Append("\" ");
+                    sb.Append($" -game \"{gameTag}\"");
                 }
                 if (!string.IsNullOrWhiteSpace(baseModelName))
                 {
-                    sb.Append("-baseModel ");
-                    string baseModelPath = Path.Combine(appDir, "data", "base_models", gameTag, baseModelName);
-                    sb.Append("\"").Append(baseModelPath).Append("\" ");
+                    sb.Append($" -baseModel \"{Path.Combine(appDir, "data", "base_models", gameTag, baseModelName)}\"");
                 }
                 if (!string.IsNullOrWhiteSpace(skeletonName))
                 {
-                    sb.Append("-skeleton ");
-                    string skeletonPath = Path.Combine(appDir, "data", "skeletons", gameTag, skeletonName);
-                    sb.Append("\"").Append(skeletonPath).Append("\" ");
+                    sb.Append($" -skeleton \"{Path.Combine(appDir, "data", "skeletons", gameTag, skeletonName)}\"");
                 }
                 if (!string.IsNullOrWhiteSpace(textureTag))
                 {
-                    sb.Append("-texture ");
-                    sb.Append("\"").Append(textureTag).Append("\" ");
+                    sb.Append($" -texture \"{textureTag}\"");
                 }
                 if (import)
                 {
                     if (!string.IsNullOrWhiteSpace(gameTag) &&
                         (texMetadataTag == "global" || texMetadataTag == "local+global"))
                     {
-                        string globalTexMetadataPath = Path.Combine(appDir, "data", "texture_formats", gameTag);
+                        string globalTexMetadataPath = Path.Combine(appDir, "data", "texture_formats", gameTag + ".csv");
                         if (File.Exists(globalTexMetadataPath))
                         {
-                            sb.Append("-texFormatFile ");
-                            sb.Append("\"").Append(globalTexMetadataPath).Append("\" ");
+                            sb.Append($" -texFormatFile \"{globalTexMetadataPath}\"");
                         }
+                    }
+                    if (optionsWindow.chkTristrips.IsChecked == true)
+                    {
+                        sb.Append(" -tristrip");
+                    }
+                    if (optionsWindow.chkBinormals.IsChecked == true)
+                    {
+                        sb.Append(" -binormals");
+                    }
+                    int boneMatrices = optionsWindow.cbBoneMatrices.SelectedIndex;
+                    if (boneMatrices >= 0 && boneMatrices <= 2)
+                    {
+                        sb.Append($" -boneMatrices {boneMatrices}");
+                    }
+                    double scale = optionsWindow.sbScale.Value;
+                    if (scale != 1.0) {
+                        sb.Append($" -scale {scale}");
+                    }
+                    double moveX = optionsWindow.sbMoveX.Value;
+                    double moveY = optionsWindow.sbMoveY.Value;
+                    double moveZ = optionsWindow.sbMoveZ.Value;
+                    if (moveX != 0.0 || moveY != 0.0 || moveZ != 0.0)
+                    {
+                        sb.Append($" -move {moveX},{moveY},{moveZ}");
+                    }
+                    if (!string.IsNullOrWhiteSpace(boneRemapName))
+                    {
+                        sb.Append($" -boneRemap \"{Path.Combine(appDir, "data", "bone_remap", boneRemapName)}\"");
+                    }
+                    if (!string.IsNullOrWhiteSpace(poseChangeName))
+                    {
+                        sb.Append($" -poseFrom \"{Path.Combine(appDir, "data", "poses", poseChangeName)}_from.fbx\"");
+                        sb.Append($" -poseTo \"{Path.Combine(appDir, "data", "poses", poseChangeName)}_to.fbx\"");
                     }
                 }
                 if (extract)
                 {
                     if (!string.IsNullOrWhiteSpace(modelTag))
                     {
-                        sb.Append("-model ");
-                        sb.Append("\"").Append(modelTag).Append("\" ");
+                        sb.Append($" -model \"{modelTag}\"");
                     }
-                    if (cbMeshQuads.SelectedIndex == 0)
+                    if (optionsWindow.cbMeshQuads.SelectedIndex == 0)
                     {
-                        sb.Append("-exportQuads ");
+                        sb.Append(" -exportQuads");
                     }
-                    if (cbHDRTextures.SelectedIndex == 0)
+                    if (optionsWindow.cbHDRTextures.SelectedIndex == 0)
                     {
-                        sb.Append("-writeHDR ");
+                        sb.Append(" -writeHDR");
                     }
                     if (!string.IsNullOrWhiteSpace(folderOptionTag))
                     {
-                        sb.Append("-folderOption ");
-                        sb.Append("\"").Append(folderOptionTag).Append("\" ");
+                        sb.Append($" -folderOption \"{folderOptionTag}\"");
                     }
                     if (texMetadataTag == "local" || texMetadataTag == "local+global")
                     {
-                        sb.Append("-writeTexMetadata ");
+                        sb.Append(" -writeTexMetadata");
                     }
                 }
 
-                string arguments = sb.ToString().TrimEnd();
+                string arguments = sb.ToString();
                 string displayCommand = $"\"{exePath}\" {arguments}";
                 //MessageBox.Show(this, displayCommand, "Command to run (debug)", MessageBoxButton.OK, MessageBoxImage.Information);
                 var psi = new ProcessStartInfo
@@ -429,6 +482,15 @@ namespace Rx3Tools
                     btnOperation.Content = "Import";
                 }
             }
+        }
+
+        private void MoreOptionsClicked(object sender, RoutedEventArgs e)
+        {
+            if (optionsWindow.Owner == null)
+            {
+                optionsWindow.Owner = this;
+            }
+            optionsWindow.ShowDialog();
         }
     }
 }
