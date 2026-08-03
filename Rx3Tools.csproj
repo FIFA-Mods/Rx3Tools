@@ -135,9 +135,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Background.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Icon.ico" />
   </ItemGroup>
   <ItemGroup>

@@ -46,9 +46,10 @@
             </ComboBox>
             <Label x:Name="lblBoneMatrices" Content="Bone Matrices" HorizontalAlignment="Left" Margin="355,102,0,0" VerticalAlignment="Top" Foreground="#f0f0f0" FontSize="18" FontFamily="Segoe UI Light"/>
             <ComboBox x:Name="cbBoneMatrices" HorizontalAlignment="Left" Margin="505,102,0,0" VerticalAlignment="Top" Width="166" SelectedIndex="0">
-                <ComboBoxItem Content="From File" />
-                <ComboBoxItem Content="From Skeleton" />
-                <ComboBoxItem Content="From Base Model" />
+                <ComboBoxItem Content="From FBX File" Tag="fromFbxFile" />
+                <ComboBoxItem Content="From Source RX3" Tag="fromSourceRx3" />
+                <ComboBoxItem Content="From Skeleton" Tag="fromSkeleton" />
+                <ComboBoxItem Content="From Base Model" Tag="fromBasemodel" />
             </ComboBox>
             <CheckBox x:Name="chkBinormals" Content="Binormals" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="21,151,0,0" FontSize="18" FontFamily="Segoe UI Light"/>
             <CheckBox x:Name="chkTristrips" Content="Tristrips" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="178,151,0,0" FontSize="18" FontFamily="Segoe UI Light"/>

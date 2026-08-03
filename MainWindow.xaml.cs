@@ -175,6 +175,7 @@ namespace Rx3Tools
                 string modelTag = GetSelectedTag(cbModel)?.Trim();
                 string textureTag = GetSelectedTag(cbTexture)?.Trim();
                 string folderOptionTag = GetSelectedTag(cbFolderOption)?.Trim();
+                string boneMatricesTag = GetSelectedTag(optionsWindow.cbBoneMatrices)?.Trim();
                 string texMetadataTag = GetSelectedTag(optionsWindow.cbTextureMetadata)?.Trim();
                 var sb = new StringBuilder();
                 bool extract = string.Equals(operationTag, "ExtractFiles", StringComparison.OrdinalIgnoreCase) ||
@@ -269,10 +270,9 @@ namespace Rx3Tools
                     {
                         sb.Append(" -binormals");
                     }
-                    int boneMatrices = optionsWindow.cbBoneMatrices.SelectedIndex;
-                    if (boneMatrices >= 0 && boneMatrices <= 2)
+                    if (!string.IsNullOrWhiteSpace(boneMatricesTag))
                     {
-                        sb.Append($" -boneMatrices {boneMatrices}");
+                        sb.Append($" -boneMatrices {boneMatricesTag}");
                     }
                     double scale = optionsWindow.sbScale.Value;
                     if (scale != 1.0) {
